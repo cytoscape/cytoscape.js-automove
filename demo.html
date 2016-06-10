@@ -1,0 +1,101 @@
+<!DOCTYPE>
+
+<html>
+
+	<head>
+		<title>cytoscape-automove.js demo</title>
+
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+
+		<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+
+		<!-- for testing with local version of cytoscape.js -->
+		<!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
+
+		<script src="cytoscape-automove.js"></script>
+
+		<style>
+			body {
+				font-family: helvetica neue, helvetica, liberation sans, arial, sans-serif;
+				font-size: 14px;
+			}
+
+			#cy {
+				position: absolute;
+				left: 0;
+				top: 0;
+				bottom: 0;
+				right: 0;
+				z-index: 999;
+			}
+
+			h1 {
+				opacity: 0.5;
+				font-size: 1em;
+				font-weight: bold;
+			}
+		</style>
+
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+
+				var cy = window.cy = cytoscape({
+					container: document.getElementById('cy'),
+
+					layout: {
+						name: 'preset'
+					},
+
+					style: [
+						{
+							selector: 'node',
+							style: {
+								'label': 'data(id)'
+							}
+						},
+
+						{
+							selector: '#mid',
+							style: {
+								'width': 8,
+								'height': 8,
+								'label': ''
+							}
+						}
+					],
+
+					elements: {
+						nodes: [
+							{ data: { id: 'a' } },
+							{ data: { id: 'b' } },
+							{ data: { id: 'c' } },
+							{ data: { id: 'mid' } }
+						],
+						edges: [
+							{ data: { source: 'a', target: 'mid' } },
+							{ data: { source: 'b', target: 'mid' } },
+							{ data: { source: 'mid', target: 'c' } }
+						]
+					},
+				});
+
+				cy.automove({
+					nodeMatches: '#mid'
+				});
+
+				cy.nodes().not('#mid').layout({
+					name: 'circle'
+				});
+
+			});
+		</script>
+	</head>
+
+	<body>
+		<h1>cytoscape-automove demo</h1>
+
+		<div id="cy"></div>
+
+	</body>
+
+</html>
