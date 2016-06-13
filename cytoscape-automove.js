@@ -1,9 +1,38 @@
 ;(function(){ 'use strict';
 
+  var defaults = {
+    // specify nodes that should be automoved with one of
+    // - a function that returns true for matched nodes
+    // - a selector that matches the nodes
+    nodesMatching: function( node ){ return false; },
+
+    // specify how a node's position should be updated with one of
+    // - function( node ){ return pos; } => put the node where the function returns
+    // - { x1, y1, x2, y2 } => constrain the node position within the bounding box (in model co-ordinates)
+    // - 'mean' => put the node in the average position of its neighbourhood
+    // - 'viewport' => keeps the node body within the viewport
+    reposition: 'mean',
+
+    // specify when the repositioning should occur by specifying a function that
+    // calls update() when reposition updates should occur
+    // - function( update ){ /* ... */ } => a manual function for updating
+    // - 'matching' => automatically update on position events for nodesMatching
+    // - set efficiently and automatically for
+    //   - reposition: 'mean'
+    //   - reposition: { x1, y1, x2, y2 }
+    //   - reposition: 'viewport'
+    // - default/undefined => on a position event for any node (not very efficient...)
+    when: undefined
+  };
+
   var typeofStr = typeof '';
+  var typeofObj = typeof {};
+
+  var isObject = function( x ){ return typeof x === typeofObj; };
+  var isString = function( x ){ return typeof x === typeofStr; };
 
   // Object.assign() polyfill
-  var assign = /*Object.assign ? Object.assign.bind( Object ) :*/ function( tgt ){
+  var assign = Object.assign ? Object.assign.bind( Object ) : function( tgt ){
     var args = arguments;
 
     for( var i = 1; i < args.length; i++ ){
@@ -22,7 +51,7 @@
   };
 
   var eleMatchesSpec = function( ele, spec ){
-    if( typeof spec === typeofStr ){
+    if( isString( spec ) ){
       return ele.is( spec );
     } else {
       return spec( ele );
@@ -34,20 +63,42 @@
   var bind = function( cy, events, selector, fn ){
     cy.on( events, 'node', fn );
 
-    bindings.push({ cy: cy, events: events, selector: 'node', fn: fn });
+    var b = { cy: cy, events: events, selector: 'node', fn: fn };
+
+    bindings.push( b );
+
+    return b;
   };
 
-  var unbindAll = function(){
-    bindings.forEach(function( b ){
-      b.cy.off( b.events, b.selector, b.fn );
-    });
+  var bindOnRule = function( rule, cy, events, selector, fn ){
+    var b = bind( cy, events, selector, fn );
+    var bindings = rule.bindings = rule.bindings || [];
+
+    bindings.push( b );
+  };
+
+  var unbindAll = function( cy ){
+    var sameCy = function( b ){ return cy === b.cy; };
+    var unbind = function( b ){ b.cy.off( b.events, b.selector, b.fn ); };
+
+    bindings.filter( sameCy ).forEach( unbind );
 
     bindings = [];
   };
 
-  var getRepositioner = function( spec ){
+  var unbindAllOnRule = function( rule ){
+    var unbind = function( b ){ b.cy.off( b.events, b.selector, b.fn ); };
+
+    rule.bindings.forEach( unbind );
+  };
+
+  var getRepositioner = function( spec, cy ){
     if( spec === 'mean' ){
       return meanNeighborhoodPosition;
+    } else if( spec === 'viewport' ){
+      return viewportPosition( cy );
+    } else if( isObject( spec ) ){
+      return boxPosition( spec );
     } else {
       return spec;
     }
@@ -70,78 +121,171 @@
     return avgPos;
   };
 
+  var constrain = function( val, min, max ){
+    return val < min ? min : ( val > max ? max : val );
+  };
+
+  var constrainInBox = function( node, bb ){
+    var pos = node.position();
+
+    return {
+      x: constrain( pos.x, bb.x1, bb.x2 ),
+      y: constrain( pos.y, bb.y1, bb.y2 )
+    };
+  };
+
+  var boxPosition = function( bb ){
+    return function( node ){
+      return constrainInBox( node, bb );
+    };
+  };
+
+  var viewportPosition = function( cy ){
+    return function( node ){
+      var extent = cy.extent();
+      var w = node.outerWidth();
+      var h = node.outerHeight();
+      var bb = {
+        x1: extent.x1 + w/2,
+        x2: extent.x2 - w/2,
+        y1: extent.y1 + h/2,
+        y2: extent.y2 - h/2
+      };
+
+      return constrainInBox( node, bb );
+    };
+  };
+
+  var meanListener = function( rule ){
+    return function( update, cy ){
+      bindOnRule( rule, cy, 'position', 'node', function(){
+        var movedNode = this;
+
+        if( movedNode.closedNeighborhood().some( rule.matches ) ){
+          update( cy, [ rule ] );
+        }
+      });
+    };
+  };
+
+  var matchingNodesListener = function( rule ){
+    return function( update, cy ){
+      bindOnRule( rule, cy, 'position', 'node', function(){
+        var movedNode = this;
+
+        if( rule.matches( movedNode ) ){
+          update( cy, [ rule ] );
+        }
+      });
+    };
+  };
+
+  var getListener = function( cy, rule ){
+    if( rule.reposition === 'mean' ){
+      return meanListener( rule );
+    } else if(
+      isObject( rule.reposition )
+      || rule.when === 'matching'
+      || rule.reposition === 'viewport'
+    ){
+      return matchingNodesListener( rule );
+    } else {
+      return rule.when;
+    }
+  };
+
+  var addRule = function( cy, scratch, options ){
+    options = assign( {}, defaults, options );
+
+    options.getNewPos = getRepositioner( options.reposition, cy );
+    options.matches = function( ele ){ return eleMatchesSpec( ele, options.nodesMatching ); };
+    options.listener = getListener( cy, options );
+
+    options.listener( function(){
+      update( cy, [ options ] );
+    }, cy );
+
+    options.enabled = true;
+
+    scratch.rules.push( options );
+
+    return options;
+  };
+
+  var update = function( cy, rules ){
+    var scratch = cy.scratch().automove;
+    var nodes = cy.nodes();
+
+    rules = rules != null ? rules : scratch.rules;
+
+    cy.batch(function(){ // batch for performance
+      for( var i = 0; i < nodes.length; i++ ){
+        var node = nodes[i];
+
+        for( var j = 0; j < rules.length; j++ ){
+          var rule = rules[j];
+
+          if( rule.destroyed || !rule.enabled ){ break; } // ignore destroyed rules b/c user may use custom when()
+
+          if( !rule.matches(node) ){ continue; }
+
+          var pos = node.position();
+          var newPos = rule.getNewPos( node );
+          var newPosIsDiff = pos.x !== newPos.x || pos.y !== newPos.y;
+
+          if( newPosIsDiff ){ // only update on diff for perf
+            node.position( newPos );
+          }
+        }
+      }
+    });
+  };
+
   // registers the extension on a cytoscape lib ref
   var register = function( cytoscape ){
 
     if( !cytoscape ){ return; } // can't register if cytoscape unspecified
 
-    var defaults = {
-      // space separated list of events to update on, probably either just 'position' or 'drag'
-      events: 'position',
-
-      // specify nodes that should be automoved with a function or a selector string (none by default)
-      nodeMatches: function( node ){ return false; },
-
-      // specify how a node's position should be updated with one of
-      // - function( node ){ return pos; } => put the node where the function returns
-      // - 'mean' => put the node in the average position of its neighbourhood
-      reposition: 'mean'
-    };
-
     cytoscape( 'core', 'automove', function( options ){
       var cy = this;
 
-      if( options === 'destroy' ){
-        unbindAll();
-
-        return this;
-      }
-
-      options = assign( {}, defaults, options );
-
-      var getNewPos = getRepositioner( options.reposition );
-      var matches = function( ele ){ return eleMatchesSpec( ele, options.nodeMatches ); };
-      var updating = false;
-
-      var update = function( immediate ){
-        var node = this;
-
-        // limit updates to once per frame for performance
-        if( updating ){
-          return;
-        } else {
-          updating = true;
-        }
-
-        var doUpdate = function(){
-          var nodes = cy.nodes();
-
-          cy.batch(function(){ // batch for performance
-            for( var i = 0; i < nodes.length; i++ ){
-              var node = nodes[i];
-
-              if( !matches(node) ){ continue; }
-
-              node.position( getNewPos( node ) );
-            }
-          });
-
-          updating = false;
-        };
-
-        if( immediate ){
-          doUpdate();
-        } else {
-          requestAnimationFrame( doUpdate );
-        }
-
+      var scratch = cy.scratch().automove = cy.scratch().automove || {
+        rules: []
       };
 
-      bind( cy, options.events, '*', update );
+      if( options === 'destroy' ){
+        scratch.rules.forEach(function( r ){ r.destroy(); });
+        scratch.rules.splice( 0, scratch.rules.length );
+        return;
+      }
 
-      update( true ); // do an initial update to make sure the start state is correct
+      var rule = addRule( cy, scratch, options );
 
-      return this; // chainability
+      update( cy, [ rule ] ); // do an initial update to make sure the start state is correct
+
+      return {
+        disable: function(){
+          this.toggle( false );
+        },
+
+        enable: function(){
+          this.toggle( true );
+        },
+
+        toggle: function( on ){
+          this.enabled = on !== undefined ? on : !this.enabled;
+        },
+
+        destroy: function(){
+          var rules = scratch.rules;
+
+          unbindAllOnRule( this );
+
+          rules.splice( rules.indexOf( this ), 1 );
+
+          return this;
+        }
+      };
     } );
 
   };

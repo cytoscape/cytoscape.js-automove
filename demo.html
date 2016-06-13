@@ -64,27 +64,91 @@
 						}
 					],
 
-					elements: {
-						nodes: [
-							{ data: { id: 'a' } },
-							{ data: { id: 'b' } },
-							{ data: { id: 'c' } },
-							{ data: { id: 'mid' } }
-						],
-						edges: [
-							{ data: { source: 'a', target: 'mid' } },
-							{ data: { source: 'b', target: 'mid' } },
-							{ data: { source: 'mid', target: 'c' } }
-						]
-					},
+					elements: [
+						{ data: { id: 'a' } },
+						{ data: { id: 'b' } },
+						{ data: { id: 'c' } },
+						{ data: { id: 'mid' } },
+						{ data: { source: 'a', target: 'mid' } },
+						{ data: { source: 'b', target: 'mid' } },
+						{ data: { source: 'mid', target: 'c' } },
+
+						{ data: { id: 'd' } },
+
+						{ data: { id: 'e' } },
+						{ data: { id: 'f' } },
+						{ data: { source: 'e', target: 'f' } },
+
+						{ data: { id: 'g' } }
+					]
+				});
+
+
+				// a, b, c; with mid in the middle
+
+				cy.$('#a, #b, #c').layout({
+					name: 'circle',
+					boundingBox: {
+						x1: 0,
+						y1: 0,
+						x2: 300,
+						y2: 300
+					}
 				});
 
 				cy.automove({
-					nodeMatches: '#mid'
+					nodesMatching: '#mid',
+					reposition: 'mean'
 				});
 
-				cy.nodes().not('#mid').layout({
-					name: 'circle'
+
+				// d can't go out of a box
+
+				cy.automove({
+					nodesMatching: '#d',
+					reposition: { x1: 350, x2: 450, y1: 100, y2: 200 }
+				});
+
+				cy.$('#d').position({ x: 400, y: 150 });
+
+
+				// e & f have the same y
+
+				var eAndF = cy.$('#e, #f');
+
+				eAndF.layout({
+					name: 'grid',
+					boundingBox: { x1: 0, x2: 300, y1: 300, y2: 400 },
+					cols: 2
+				});
+
+				cy.automove({
+					nodesMatching: '#e, #f',
+					reposition: function( node ){
+						var pos = node.position();
+
+						if( node.grabbed() ){ return pos; }
+
+						var otherNode = eAndF.not( node );
+
+						return {
+							x: pos.x,
+							y: otherNode.position('y')
+						};
+					},
+					when: 'matching'
+				});
+
+
+				// g kept in viewport
+
+				cy.$('#g').position({ x: 400, y: 350 });
+
+				cy.fit( 100 ); // fit to all the layouts
+
+				cy.automove({
+					nodesMatching: '#g',
+					reposition: 'viewport'
 				});
 
 			});

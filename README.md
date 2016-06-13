@@ -50,21 +50,45 @@ Each time `cy.automove()` is called, the specified rules are added to the core i
 
 ```js
 var defaults = {
-  // space separated list of events to update on, probably either just 'position' or 'drag'
-  events: 'position',
-
-  // specify nodes that should be automoved with a function or a selector string (none by default)
-  nodeMatches: function( node ){ return false; },
+  // specify nodes that should be automoved with one of
+  // - a function that returns true for matched nodes
+  // - a selector that matches the nodes
+  nodesMatching: function( node ){ return false; },
 
   // specify how a node's position should be updated with one of
   // - function( node ){ return pos; } => put the node where the function returns
+  // - { x1, y1, x2, y2 } => constrain the node position within the bounding box (in model co-ordinates)
   // - 'mean' => put the node in the average position of its neighbourhood
-  reposition: 'mean'
+  // - 'viewport' => keeps the node body within the viewport
+  reposition: 'mean',
+
+  // specify when the repositioning should occur by specifying a function that
+  // calls update() when reposition updates should occur
+  // - function( update ){ /* ... */ } => a manual function for updating
+  // - 'matching' => automatically update on position events for nodesMatching
+  // - set efficiently and automatically for
+  //   - reposition: 'mean'
+  //   - reposition: { x1, y1, x2, y2 }
+  //   - reposition: 'viewport'
+  // - default/undefined => on a position event for any node (not very efficient...)
+  when: undefined
 };
 
 var options = defaults;
 
-cy.automove( options );
+var rule = cy.automove( options );
+```
+
+A rule has a number of functions available:
+
+```js
+rule.toggle(); // toggle whether the rule is enabled
+
+rule.disable(); // temporarily disable the rule
+
+rule.enable(); // re-enable the rule
+
+rule.destroy(); // remove and clean up just this rule
 ```
 
 You can also remove all the rules you previously specified:
