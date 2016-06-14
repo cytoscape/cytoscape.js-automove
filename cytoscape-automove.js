@@ -2,12 +2,12 @@
 
   var defaults = {
     // specify nodes that should be automoved with one of
-    // - a function that returns true for matched nodes
+    // - a function that returns true for matching nodes
     // - a selector that matches the nodes
     nodesMatching: function( node ){ return false; },
 
     // specify how a node's position should be updated with one of
-    // - function( node ){ return pos; } => put the node where the function returns
+    // - function( node ){ return { x: 1, y: 2 }; } => put the node where the function returns
     // - { x1, y1, x2, y2 } => constrain the node position within the bounding box (in model co-ordinates)
     // - 'mean' => put the node in the average position of its neighbourhood
     // - 'viewport' => keeps the node body within the viewport
@@ -21,7 +21,7 @@
     //   - reposition: 'mean'
     //   - reposition: { x1, y1, x2, y2 }
     //   - reposition: 'viewport'
-    // - default/undefined => on a position event for any node (not very efficient...)
+    // - default/undefined => on a position event for any node (not as efficient...)
     when: undefined
   };
 

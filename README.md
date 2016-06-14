@@ -6,7 +6,8 @@ cytoscape-automove
 
 This extension automatically updates the positions of nodes based on rules that you specify.  
 
-Common usecases
+Common usecases:
+
  * Making one node move in step with another node
  * Constraining a node within a boundary
  * Using a node to represent an n-ary interaction
@@ -20,6 +21,7 @@ Common usecases
 ## Usage instructions
 
 Download the library:
+
  * via npm: `npm install cytoscape-automove`,
  * via bower: `bower install cytoscape-automove`, or
  * via direct download in the repository (probably from a tag).
@@ -51,12 +53,12 @@ Each time `cy.automove()` is called, the specified rules are added to the core i
 ```js
 var defaults = {
   // specify nodes that should be automoved with one of
-  // - a function that returns true for matched nodes
+  // - a function that returns true for matching nodes
   // - a selector that matches the nodes
   nodesMatching: function( node ){ return false; },
 
   // specify how a node's position should be updated with one of
-  // - function( node ){ return pos; } => put the node where the function returns
+  // - function( node ){ return { x: 1, y: 2 }; } => put the node where the function returns
   // - { x1, y1, x2, y2 } => constrain the node position within the bounding box (in model co-ordinates)
   // - 'mean' => put the node in the average position of its neighbourhood
   // - 'viewport' => keeps the node body within the viewport
@@ -64,13 +66,13 @@ var defaults = {
 
   // specify when the repositioning should occur by specifying a function that
   // calls update() when reposition updates should occur
-  // - function( update ){ /* ... */ } => a manual function for updating
+  // - function( update ){ /* ... */ update(); } => a manual function for updating
   // - 'matching' => automatically update on position events for nodesMatching
   // - set efficiently and automatically for
   //   - reposition: 'mean'
   //   - reposition: { x1, y1, x2, y2 }
   //   - reposition: 'viewport'
-  // - default/undefined => on a position event for any node (not very efficient...)
+  // - default/undefined => on a position event for any node (not as efficient...)
   when: undefined
 };
 
