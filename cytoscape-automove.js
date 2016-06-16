@@ -90,6 +90,8 @@
     var unbind = function( b ){ b.cy.off( b.events, b.selector, b.fn ); };
 
     rule.bindings.forEach( unbind );
+
+    rule.bindings = [];
   };
 
   var getRepositioner = function( spec, cy ){
@@ -195,21 +197,21 @@
   };
 
   var addRule = function( cy, scratch, options ){
-    options = assign( {}, defaults, options );
+    var rule = assign( {}, defaults, options );
 
-    options.getNewPos = getRepositioner( options.reposition, cy );
-    options.matches = function( ele ){ return eleMatchesSpec( ele, options.nodesMatching ); };
-    options.listener = getListener( cy, options );
+    rule.getNewPos = getRepositioner( rule.reposition, cy );
+    rule.matches = function( ele ){ return eleMatchesSpec( ele, rule.nodesMatching ); };
+    rule.listener = getListener( cy, rule );
 
-    options.listener( function(){
-      update( cy, [ options ] );
+    rule.listener( function(){
+      update( cy, [ rule ] );
     }, cy );
 
-    options.enabled = true;
+    rule.enabled = true;
 
-    scratch.rules.push( options );
+    scratch.rules.push( rule );
 
-    return options;
+    return rule;
   };
 
   var update = function( cy, rules ){
@@ -272,16 +274,24 @@
           this.toggle( true );
         },
 
+        enabled: function(){
+          return rule.enabled;
+        },
+
         toggle: function( on ){
-          this.enabled = on !== undefined ? on : !this.enabled;
+          rule.enabled = on !== undefined ? on : !rule.enabled;
+
+          if( rule.enabled ){
+            update( cy, [ rule ] );
+          }
         },
 
         destroy: function(){
           var rules = scratch.rules;
 
-          unbindAllOnRule( this );
+          unbindAllOnRule( rule );
 
-          rules.splice( rules.indexOf( this ), 1 );
+          rules.splice( rules.indexOf( rule ), 1 );
 
           return this;
         }
