@@ -221,18 +221,25 @@
     rules = rules != null ? rules : scratch.rules;
 
     cy.batch(function(){ // batch for performance
-      for( var i = 0; i < nodes.length; i++ ){
-        var node = nodes[i];
+      for(var i = 0; i < rules.length; i++){
+        var rule = rules[i];
+        if(rule.destroyed || !rule.enabled){ break; } // ignore destroyed rules b/c user may use custom when()
 
-        for( var j = 0; j < rules.length; j++ ){
-          var rule = rules[j];
+        // If this rule has a limited scope, only iterate over nodes within scope, 
+        // else - apply rule across -all- nodes in graph.
+        if(rule.scope){
+          var nodes = rule.scope;
+        }else{
+          var nodes = cy.nodes();           
+        }
 
-          if( rule.destroyed || !rule.enabled ){ break; } // ignore destroyed rules b/c user may use custom when()
+        for(var j = 0; j < nodes.length; j++){
+          var node = nodes[j];
 
           if( !rule.matches(node) ){ continue; }
-
-          var pos = node.position();
-          var newPos = rule.getNewPos( node );
+        
+          var pos = node.position(); 
+          var newPos = rule.getNewPos( node ); 
           var newPosIsDiff = pos.x !== newPos.x || pos.y !== newPos.y;
 
           if( newPosIsDiff ){ // only update on diff for perf
@@ -240,7 +247,8 @@
           }
         }
       }
-    });
+    })
+
   };
 
   // registers the extension on a cytoscape lib ref
