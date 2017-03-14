@@ -3,7 +3,7 @@
   "description": "An extension for Cytoscape.js that automatically updates node positions based on specified rules",
   "main": "cytoscape-automove.js",
   "dependencies": {
-    "cytoscape": "^2.7.0"
+    "cytoscape": "^2.7.0 || ^3.0.0"
   },
   "repository": {
     "type": "git",
