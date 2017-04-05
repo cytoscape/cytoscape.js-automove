@@ -86,7 +86,7 @@
 
 				// a, b, c; with mid in the middle
 
-				cy.$('#a, #b, #c').layout({
+				cy.$('#a, #b, #c').makeLayout({
 					name: 'circle',
 					boundingBox: {
 						x1: 0,
@@ -94,7 +94,7 @@
 						x2: 300,
 						y2: 300
 					}
-				});
+				}).run();
 
 				cy.automove({
 					nodesMatching: '#mid',
@@ -116,11 +116,11 @@
 
 				var eAndF = cy.$('#e, #f');
 
-				eAndF.layout({
+				eAndF.makeLayout({
 					name: 'grid',
 					boundingBox: { x1: 0, x2: 300, y1: 300, y2: 400 },
 					cols: 2
-				});
+				}).run();
 
 				cy.automove({
 					nodesMatching: '#e, #f',
