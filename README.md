@@ -74,6 +74,12 @@ var defaults = {
   //   - reposition: 'viewport'
   // - default/undefined => on a position event for any node (not as efficient...)
   when: undefined
+
+  // specify a set of nodes over which the rule may apply. This is useful for large graphs, 
+  // where only a small, known subset of nodes may be affected by a given automove-rule. 
+  // - a collection of nodes
+  // - default/undefined => all nodes in graph
+  scope: undefined
 };
 
 var options = defaults;
