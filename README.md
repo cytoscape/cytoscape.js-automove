@@ -84,6 +84,8 @@ var rule = cy.automove( options );
 A rule has a number of functions available:
 
 ```js
+rule.apply(); // manually apply a rule
+
 rule.enabled(); // get whether rule is enabled
 
 rule.toggle(); // toggle whether the rule is enabled

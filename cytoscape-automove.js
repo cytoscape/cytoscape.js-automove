@@ -266,6 +266,10 @@
       update( cy, [ rule ] ); // do an initial update to make sure the start state is correct
 
       return {
+        apply: function(){
+          update( cy, [ rule ] );
+        },
+
         disable: function(){
           this.toggle( false );
         },
