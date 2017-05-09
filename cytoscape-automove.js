@@ -163,7 +163,7 @@
       bindOnRule( rule, cy, 'position', 'node', function(){
         var movedNode = this;
 
-        if( movedNode.closedNeighborhood().some( rule.matches ) ){
+        if( movedNode.openNeighborhood().some( rule.matches ) ){
           update( cy, [ rule ] );
         }
       });
