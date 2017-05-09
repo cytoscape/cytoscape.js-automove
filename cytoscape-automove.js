@@ -48,7 +48,7 @@
   };
 
   var eleMatchesSpec = function( ele, spec ){
-    if( ele.removed() ){
+    if( ele == null || ele.removed() ){
       return false;
     } else if( isString( spec ) ){
       return ele.is( spec );
@@ -60,11 +60,11 @@
   var bindings = [];
 
   var bind = function( cy, events, selector, fn ){
-    cy.on( events, 'node', fn );
-
-    var b = { cy: cy, events: events, selector: 'node', fn: fn };
+    var b = { cy: cy, events: events, selector: selector || 'node', fn: fn };
 
     bindings.push( b );
+
+    cy.on( b.events, b.selector, b.fn );
 
     return b;
   };
@@ -173,6 +173,16 @@
           update( cy, [ rule ] );
         }
       });
+
+      bindOnRule( rule, cy, 'add remove', 'edge', function(){
+        var edge = this;
+        var src = cy.getElementById( edge.data('source') );
+        var tgt = cy.getElementById( edge.data('target') );
+
+        if( [ src, tgt ].some( rule.matches ) ){
+          update( cy, [ rule ] );
+        }
+      });
     };
   };
 
@@ -212,7 +222,7 @@
 
     if( nodesAreCollection ){
       rule.nodes = rule.nodesMatching;
-      rule.matches = function( ele ){ return rule.nodes.intersection( ele ).length > 0; };
+      rule.matches = function( ele ){ return ele != null && rule.nodes.intersection( ele ).length > 0; };
     } else {
       rule.matches = function( ele ){ return eleMatchesSpec( ele, rule.nodesMatching ); };
     }
