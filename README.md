@@ -103,6 +103,10 @@ You can also remove all the rules you previously specified:
 cy.automove('destroy');
 ```
 
+## Events
+
+- `automove` : Emitted on a node when its position is changed by a rule
+
 
 ## Publishing instructions
 
