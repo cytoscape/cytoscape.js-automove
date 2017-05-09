@@ -106,6 +106,7 @@
   };
 
   var meanNeighborhoodPosition = function( node ){
+    var currPos = node.position();
     var nhood = node.neighborhood();
     var avgPos = { x: 0, y: 0 };
     var nhoodSize = 0;
@@ -166,10 +167,15 @@
 
   var meanListener = function( rule ){
     return function( update, cy ){
+      let matches = function( ele ){
+        // must meet ele set and be connected to more than (1 edge + 1 node)
+        return rule.matches( ele ) && ele.neighborhood().length > 2;
+      };
+
       bindOnRule( rule, cy, 'position', 'node', function(){
         var movedNode = this;
 
-        if( movedNode.neighborhood().some( rule.matches ) ){
+        if( movedNode.neighborhood().some( matches ) ){
           update( cy, [ rule ] );
         }
       });
@@ -179,7 +185,7 @@
         var src = cy.getElementById( edge.data('source') );
         var tgt = cy.getElementById( edge.data('target') );
 
-        if( [ src, tgt ].some( rule.matches ) ){
+        if( [ src, tgt ].some( matches ) ){
           update( cy, [ rule ] );
         }
       });
