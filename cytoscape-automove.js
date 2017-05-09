@@ -106,7 +106,6 @@
   };
 
   var meanNeighborhoodPosition = function( node ){
-    var currPos = node.position();
     var nhood = node.neighborhood();
     var avgPos = { x: 0, y: 0 };
     var nhoodSize = 0;
@@ -167,7 +166,7 @@
 
   var meanListener = function( rule ){
     return function( update, cy ){
-      let matches = function( ele ){
+      var matches = function( ele ){
         // must meet ele set and be connected to more than (1 edge + 1 node)
         return rule.matches( ele ) && ele.neighborhood().length > 2;
       };
