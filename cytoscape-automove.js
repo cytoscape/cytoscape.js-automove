@@ -4,6 +4,7 @@
     // specify nodes that should be automoved with one of
     // - a function that returns true for matching nodes
     // - a selector that matches the nodes
+    // - a collection or array of nodes (very good for performance)
     nodesMatching: function( node ){ return false; },
 
     // specify how a node's position should be updated with one of
@@ -15,7 +16,7 @@
 
     // specify when the repositioning should occur by specifying a function that
     // calls update() when reposition updates should occur
-    // - function( update ){ /* ... */ } => a manual function for updating
+    // - function( update ){ /* ... */ update(); } => a manual function for updating
     // - 'matching' => automatically update on position events for nodesMatching
     // - set efficiently and automatically for
     //   - reposition: 'mean'
@@ -27,9 +28,11 @@
 
   var typeofStr = typeof '';
   var typeofObj = typeof {};
+  var typeofFn = typeof function(){};
 
   var isObject = function( x ){ return typeof x === typeofObj; };
   var isString = function( x ){ return typeof x === typeofStr; };
+  var isFunction = function( x ){ return typeof x === typeofFn; };
 
   // Object.assign() polyfill
   var assign = Object.assign ? Object.assign.bind( Object ) : function( tgt ){
@@ -44,14 +47,10 @@
     return tgt;
   };
 
-  var requestAnimationFrame = ( window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame ).bind( window );
-
-  var onNextTick = function( fn ){
-    setTimeout( fn, 0 );
-  };
-
   var eleMatchesSpec = function( ele, spec ){
-    if( isString( spec ) ){
+    if( ele.removed() ){
+      return false;
+    } else if( isString( spec ) ){
       return ele.is( spec );
     } else {
       return spec( ele );
@@ -107,18 +106,25 @@
   };
 
   var meanNeighborhoodPosition = function( node ){
-    var nhood = node.neighbourhood().nodes();
+    var nhood = node.neighborhood();
     var avgPos = { x: 0, y: 0 };
+    var nhoodSize = 0;
 
     for( var i = 0; i < nhood.length; i++ ){
-      var pos = nhood[i].position();
+      var nhoodEle = nhood[i];
 
-      avgPos.x += pos.x;
-      avgPos.y += pos.y;
+      if( nhoodEle.isNode() ){
+        var pos = nhoodEle.position();
+
+        avgPos.x += pos.x;
+        avgPos.y += pos.y;
+
+        nhoodSize++;
+      }
     }
 
-    avgPos.x /= nhood.length;
-    avgPos.y /= nhood.length;
+    avgPos.x /= nhoodSize;
+    avgPos.y /= nhoodSize;
 
     return avgPos;
   };
@@ -163,7 +169,7 @@
       bindOnRule( rule, cy, 'position', 'node', function(){
         var movedNode = this;
 
-        if( movedNode.openNeighborhood().some( rule.matches ) ){
+        if( movedNode.neighborhood().some( rule.matches ) ){
           update( cy, [ rule ] );
         }
       });
@@ -200,8 +206,16 @@
     var rule = assign( {}, defaults, options );
 
     rule.getNewPos = getRepositioner( rule.reposition, cy );
-    rule.matches = function( ele ){ return eleMatchesSpec( ele, rule.nodesMatching ); };
     rule.listener = getListener( cy, rule );
+
+    var nodesAreCollection = isObject( rule.nodesMatching ) && isFunction( rule.nodesMatching.collection );
+
+    if( nodesAreCollection ){
+      rule.nodes = rule.nodesMatching;
+      rule.matches = function( ele ){ return rule.nodes.intersection( ele ).length > 0; };
+    } else {
+      rule.matches = function( ele ){ return eleMatchesSpec( ele, rule.nodesMatching ); };
+    }
 
     rule.listener( function(){
       update( cy, [ rule ] );
@@ -214,20 +228,40 @@
     return rule;
   };
 
+  var bindForNodeList = function( cy, scratch ){
+    scratch.onAddNode = function( evt ){
+      var target = evt.target;
+
+      scratch.nodes.push( target );
+    };
+
+    cy.on('add', 'node', scratch.onAddNode);
+  };
+
+  var unbindForNodeList = function( cy, scratch ){
+    cy.removeListener('add', 'node', scratch.onAddNode);
+  };
+
   var update = function( cy, rules ){
     var scratch = cy.scratch().automove;
-    var nodes = cy.nodes();
 
     rules = rules != null ? rules : scratch.rules;
 
     cy.batch(function(){ // batch for performance
-      for( var i = 0; i < nodes.length; i++ ){
-        var node = nodes[i];
+      for( var i = 0; i < rules.length; i++ ){
+        var rule = rules[i];
 
-        for( var j = 0; j < rules.length; j++ ){
-          var rule = rules[j];
+        if( rule.destroyed || !rule.enabled ){ break; } // ignore destroyed rules b/c user may use custom when()
 
-          if( rule.destroyed || !rule.enabled ){ break; } // ignore destroyed rules b/c user may use custom when()
+        var nodes = rule.nodes || scratch.nodes;
+
+        for( var j = nodes.length - 1; j >= 0; j-- ){
+          var node = nodes[j];
+
+          if( node.removed() ){ // remove from list for perf
+            nodes.splice( j, 1 );
+            continue;
+          }
 
           if( !rule.matches(node) ){ continue; }
 
@@ -257,9 +291,18 @@
         rules: []
       };
 
+      if( scratch.rules.length === 0 ){
+        scratch.nodes = cy.nodes().toArray();
+
+        bindForNodeList( cy, scratch );
+      }
+
       if( options === 'destroy' ){
         scratch.rules.forEach(function( r ){ r.destroy(); });
         scratch.rules.splice( 0, scratch.rules.length );
+
+        unbindForNodeList( cy, scratch );
+
         return;
       }
 
@@ -298,6 +341,10 @@
           unbindAllOnRule( rule );
 
           rules.splice( rules.indexOf( rule ), 1 );
+
+          if( rules.length === 0 ){
+            unbindForNodeList( cy, scratch );
+          }
 
           return this;
         }

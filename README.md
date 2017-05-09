@@ -55,6 +55,7 @@ var defaults = {
   // specify nodes that should be automoved with one of
   // - a function that returns true for matching nodes
   // - a selector that matches the nodes
+  // - a collection or array of nodes (very good for performance)
   nodesMatching: function( node ){ return false; },
 
   // specify how a node's position should be updated with one of

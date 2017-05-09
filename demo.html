@@ -102,7 +102,7 @@
 				}).run();
 
 				cy.automove({
-					nodesMatching: '#mid',
+					nodesMatching: cy.$('#mid'),
 					reposition: 'mean'
 				});
 
@@ -110,7 +110,7 @@
 				// d can't go out of a box
 
 				cy.automove({
-					nodesMatching: '#d',
+					nodesMatching: cy.$('#d'),
 					reposition: { x1: 350, x2: 450, y1: 100, y2: 200 }
 				});
 
@@ -128,7 +128,7 @@
 				}).run();
 
 				cy.automove({
-					nodesMatching: '#e, #f',
+					nodesMatching: cy.$('#e, #f'),
 					reposition: function( node ){
 						var pos = node.position();
 
@@ -152,8 +152,38 @@
 				cy.fit( 100 ); // fit to all the layouts
 
 				cy.automove({
-					nodesMatching: '#g',
+					nodesMatching: cy.$('#g'),
 					reposition: 'viewport'
+				});
+
+
+				// .automove-viewport nodes kept in viewport (even if added after this call)
+				// convenient but less performant than `nodesMatching: collection`
+
+				cy.automove({
+					nodesMatching: '.automove-viewport',
+					reposition: 'viewport'
+				});
+
+				cy.on('tap', function( evt ){
+					var tgt = evt.target || evt.cyTarget; // 3.x || 2.x
+
+					if( tgt === cy ){
+						cy.add({
+							classes: 'automove-viewport',
+							data: { id: 'new' + Math.round( Math.random() * 100 ) },
+							position: {
+								x: evt.position.x,
+								y: evt.position.y
+							}
+						});
+					}
+				});
+
+				cy.on('cxttap', 'node', function( evt ){
+					var tgt = evt.target || evt.cyTarget; // 3.x || 2.x
+
+					tgt.remove();
 				});
 
 			});
