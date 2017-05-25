@@ -4,7 +4,7 @@
     // specify nodes that should be automoved with one of
     // - a function that returns true for matching nodes
     // - a selector that matches the nodes
-    // - a collection or array of nodes (very good for performance)
+    // - a collection of nodes (very good for performance)
     nodesMatching: function( node ){ return false; },
 
     // specify how a node's position should be updated with one of
@@ -12,13 +12,20 @@
     // - { x1, y1, x2, y2 } => constrain the node position within the bounding box (in model co-ordinates)
     // - 'mean' => put the node in the average position of its neighbourhood
     // - 'viewport' => keeps the node body within the viewport
+    // - 'drag' => matching nodes are effectively dragged along
     reposition: 'mean',
 
     // for `reposition: 'mean'`, specify nodes that should be ignored in the mean calculation
     // - a function that returns true for nodes to be ignored
     // - a selector that matches the nodes to be ignored
-    // - a collection or array of nodes to be ignored (very good for performance)
+    // - a collection of nodes to be ignored (very good for performance)
     meanIgnores: function( node ){ return false; },
+
+    // for `reposition: 'drag'`, specify nodes that when dragged cause the matched nodes to move along
+    // - a function that returns true for nodes to be listened to for drag events
+    // - a selector that matches the nodes to be listened to for drag events
+    // - a collection of nodes to be ignored (very good for performance)
+    dragWith: function( node ){ return false; },
 
     // specify when the repositioning should occur by specifying a function that
     // calls update() when reposition updates should occur
@@ -28,6 +35,7 @@
     //   - reposition: 'mean'
     //   - reposition: { x1, y1, x2, y2 }
     //   - reposition: 'viewport'
+    //   - reposition: 'drag'
     // - default/undefined => on a position event for any node (not as efficient...)
     when: undefined
   };
@@ -127,11 +135,27 @@
       return meanNeighborhoodPosition( getEleMatchesSpecFn( rule.meanIgnores ) );
     } else if( r === 'viewport' ){
       return viewportPosition( cy );
+    } else if( r === 'drag' ){
+      return dragAlong( rule );
     } else if( isObject( r ) ){
       return boxPosition( r );
     } else {
       return r;
     }
+  };
+
+  var dragAlong = function( rule ){
+    return function( node ){
+      var pos = node.position();
+      var delta = rule.delta;
+
+      if( rule.delta != null && !node.same( rule.grabbedNode ) ){
+        return {
+          x: pos.x + delta.x,
+          y: pos.y + delta.y
+        }
+      }
+    };
   };
 
   var meanNeighborhoodPosition = function( ignore ){
@@ -222,6 +246,46 @@
     };
   };
 
+  var dragListener = function( rule ){
+    return function( update, cy ){
+      bindOnRule( rule, cy, 'grab', 'node', function(){
+        var node = this;
+
+        if( rule.dragWithMatches( node ) ){
+          var p = node.position();
+
+          rule.grabbedNode = node;
+          rule.p1 = { x: p.x, y: p.y };
+          rule.delta = { x: 0, y: 0 };
+        }
+      });
+
+      bindOnRule( rule, cy, 'drag', 'node', function(){
+        var node = this;
+
+        if( node.same( rule.grabbedNode ) ){
+          var d = rule.delta;
+          var p1 = rule.p1;
+          var p = node.position();
+          var p2 = { x: p.x, y: p.y };
+
+          d.x = p2.x - p1.x;
+          d.y = p2.y - p1.y;
+
+          rule.p1 = p2;
+
+          update( cy, [ rule ] );
+        }
+      });
+
+      bindOnRule( rule, cy, 'free', 'node', function(){
+        rule.grabbedNode = null;
+        rule.delta = null;
+        rule.p1 = null;
+      });
+    };
+  };
+
   var matchingNodesListener = function( rule ){
     return function( update, cy ){
       bindOnRule( rule, cy, 'position', 'node', function(){
@@ -237,6 +301,8 @@
   var getListener = function( cy, rule ){
     if( rule.reposition === 'mean' ){
       return meanListener( rule );
+    } else if( rule.reposition === 'drag' ){
+      return dragListener( rule );
     } else if(
       isObject( rule.reposition )
       || rule.when === 'matching'
@@ -264,6 +330,10 @@
       var matches = getEleMatchesSpecFn( rule.nodesMatching );
 
       rule.matches = function( ele ){ return eleExists( ele ) && matches( ele ) };
+    }
+
+    if( rule.dragWith != null ){
+      rule.dragWithMatches = getEleMatchesSpecFn( rule.dragWith );
     }
 
     rule.listener( function(){
@@ -316,7 +386,7 @@
 
           var pos = node.position();
           var newPos = rule.getNewPos( node );
-          var newPosIsDiff = pos.x !== newPos.x || pos.y !== newPos.y;
+          var newPosIsDiff = newPos != null && ( pos.x !== newPos.x || pos.y !== newPos.y );
 
           if( newPosIsDiff ){ // only update on diff for perf
             node.position( newPos );

@@ -79,7 +79,11 @@
 						{ data: { id: 'f' } },
 						{ data: { source: 'e', target: 'f' } },
 
-						{ data: { id: 'g' } }
+						{ data: { id: 'g' } },
+
+						{ data: { id: 'h' } },
+						{ data: { id: 'i' } },
+						{ data: { source: 'h', target: 'i' } }
 					]
 				});
 
@@ -124,7 +128,8 @@
 				eAndF.makeLayout({
 					name: 'grid',
 					boundingBox: { x1: 0, x2: 300, y1: 300, y2: 400 },
-					cols: 2
+					cols: 2,
+					fit: false
 				}).run();
 
 				cy.automove({
@@ -149,13 +154,26 @@
 
 				cy.$('#g').position({ x: 400, y: 350 });
 
-				cy.fit( 100 ); // fit to all the layouts
+				cy.fit( 100 ); // make sure g is in the viewport for the demo
 
 				cy.automove({
 					nodesMatching: cy.$('#g'),
 					reposition: 'viewport'
 				});
 
+
+				// i gets pulled along with h on drag
+
+				cy.$('#h').position({ x: 585, y: 195 });
+				cy.$('#i').position({ x: 510, y: 260 });
+
+				cy.automove({
+					nodesMatching: cy.$('#i'),
+					reposition: 'drag',
+					dragWith: cy.$('#h')
+				});
+
+				cy.fit( 100 ); // fit to all the layouts
 
 				// .automove-viewport nodes kept in viewport (even if added after this call)
 				// convenient but less performant than `nodesMatching: collection`
