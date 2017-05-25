@@ -14,6 +14,12 @@
     // - 'viewport' => keeps the node body within the viewport
     reposition: 'mean',
 
+    // for `reposition: 'mean'`, specify nodes that should be ignored in the mean calculation
+    // - a function that returns true for nodes to be ignored
+    // - a selector that matches the nodes to be ignored
+    // - a collection or array of nodes to be ignored (very good for performance)
+    meanIgnores: function( node ){ return false; },
+
     // specify when the repositioning should occur by specifying a function that
     // calls update() when reposition updates should occur
     // - function( update ){ /* ... */ update(); } => a manual function for updating
@@ -33,6 +39,7 @@
   var isObject = function( x ){ return typeof x === typeofObj; };
   var isString = function( x ){ return typeof x === typeofStr; };
   var isFunction = function( x ){ return typeof x === typeofFn; };
+  var isCollection = function( x ){ return isObject( x ) && isFunction( x.collection ) };
 
   // Object.assign() polyfill
   var assign = Object.assign ? Object.assign.bind( Object ) : function( tgt ){
@@ -47,13 +54,33 @@
     return tgt;
   };
 
-  var eleMatchesSpec = function( ele, spec ){
-    if( ele == null || ele.removed() ){
-      return false;
-    } else if( isString( spec ) ){
-      return ele.is( spec );
+  var eleExists = function( ele ){
+    return ele != null && !ele.removed();
+  };
+
+  var elesHasEle = function( eles, ele ){
+    if( eles.has != undefined ){ // 3.x
+      elesHasEle = function( eles, ele ){ return eles.has( ele ); };
+    } else { // 2.x
+      elesHasEle = function( eles, ele ){ return eles.intersection( ele ).length > 0; };
+    }
+
+    return elesHasEle( eles, ele );
+  };
+
+  var getEleMatchesSpecFn = function( spec ){
+    if( isString( spec ) ){
+      return function( ele ){
+        return ele.is( spec );
+      };
+    } else if( isFunction( spec ) ){
+      return spec;
+    } else if( isCollection( spec ) ){
+      return function( ele ){
+        return elesHasEle( spec, ele );
+      };
     } else {
-      return spec( ele );
+      throw new Error('Can not create match function for spec', spec);
     }
   };
 
@@ -93,40 +120,44 @@
     rule.bindings = [];
   };
 
-  var getRepositioner = function( spec, cy ){
-    if( spec === 'mean' ){
-      return meanNeighborhoodPosition;
-    } else if( spec === 'viewport' ){
+  var getRepositioner = function( rule, cy ){
+    var r = rule.reposition;
+
+    if( r === 'mean' ){
+      return meanNeighborhoodPosition( getEleMatchesSpecFn( rule.meanIgnores ) );
+    } else if( r === 'viewport' ){
       return viewportPosition( cy );
-    } else if( isObject( spec ) ){
-      return boxPosition( spec );
+    } else if( isObject( r ) ){
+      return boxPosition( r );
     } else {
-      return spec;
+      return r;
     }
   };
 
-  var meanNeighborhoodPosition = function( node ){
-    var nhood = node.neighborhood();
-    var avgPos = { x: 0, y: 0 };
-    var nhoodSize = 0;
+  var meanNeighborhoodPosition = function( ignore ){
+    return function( node ){
+      var nhood = node.neighborhood();
+      var avgPos = { x: 0, y: 0 };
+      var nhoodSize = 0;
 
-    for( var i = 0; i < nhood.length; i++ ){
-      var nhoodEle = nhood[i];
+      for( var i = 0; i < nhood.length; i++ ){
+        var nhoodEle = nhood[i];
 
-      if( nhoodEle.isNode() ){
-        var pos = nhoodEle.position();
+        if( nhoodEle.isNode() && !ignore( nhoodEle ) ){
+          var pos = nhoodEle.position();
 
-        avgPos.x += pos.x;
-        avgPos.y += pos.y;
+          avgPos.x += pos.x;
+          avgPos.y += pos.y;
 
-        nhoodSize++;
+          nhoodSize++;
+        }
       }
-    }
 
-    avgPos.x /= nhoodSize;
-    avgPos.y /= nhoodSize;
+      avgPos.x /= nhoodSize;
+      avgPos.y /= nhoodSize;
 
-    return avgPos;
+      return avgPos;
+    };
   };
 
   var constrain = function( val, min, max ){
@@ -220,16 +251,19 @@
   var addRule = function( cy, scratch, options ){
     var rule = assign( {}, defaults, options );
 
-    rule.getNewPos = getRepositioner( rule.reposition, cy );
+    rule.getNewPos = getRepositioner( rule, cy );
     rule.listener = getListener( cy, rule );
 
-    var nodesAreCollection = isObject( rule.nodesMatching ) && isFunction( rule.nodesMatching.collection );
+    var nodesAreCollection = isCollection( rule.nodesMatching );
 
     if( nodesAreCollection ){
       rule.nodes = rule.nodesMatching;
-      rule.matches = function( ele ){ return ele != null && rule.nodes.intersection( ele ).length > 0; };
+
+      rule.matches = function( ele ){ return eleExists( ele ) && elesHasEle( rule.nodes, ele ); };
     } else {
-      rule.matches = function( ele ){ return eleMatchesSpec( ele, rule.nodesMatching ); };
+      var matches = getEleMatchesSpecFn( rule.nodesMatching );
+
+      rule.matches = function( ele ){ return eleExists( ele ) && matches( ele ) };
     }
 
     rule.listener( function(){

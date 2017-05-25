@@ -65,6 +65,12 @@ var defaults = {
   // - 'viewport' => keeps the node body within the viewport
   reposition: 'mean',
 
+  // for `reposition: 'mean'`, specify nodes that should be ignored in the mean calculation
+  // - a function that returns true for nodes to be ignored
+  // - a selector that matches the nodes to be ignored
+  // - a collection or array of nodes to be ignored (very good for performance)
+  meanIgnores: function( node ){ return false; },
+
   // specify when the repositioning should occur by specifying a function that
   // calls update() when reposition updates should occur
   // - function( update ){ /* ... */ update(); } => a manual function for updating
