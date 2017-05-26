@@ -1,4 +1,4 @@
-;(function(){ 'use strict';
+(function(){ 'use strict';
 
   var defaults = {
     // specify nodes that should be automoved with one of
@@ -47,7 +47,7 @@
   var isObject = function( x ){ return typeof x === typeofObj; };
   var isString = function( x ){ return typeof x === typeofStr; };
   var isFunction = function( x ){ return typeof x === typeofFn; };
-  var isCollection = function( x ){ return isObject( x ) && isFunction( x.collection ) };
+  var isCollection = function( x ){ return isObject( x ) && isFunction( x.collection ); };
 
   // Object.assign() polyfill
   var assign = Object.assign ? Object.assign.bind( Object ) : function( tgt ){
@@ -111,15 +111,6 @@
     bindings.push( b );
   };
 
-  var unbindAll = function( cy ){
-    var sameCy = function( b ){ return cy === b.cy; };
-    var unbind = function( b ){ b.cy.off( b.events, b.selector, b.fn ); };
-
-    bindings.filter( sameCy ).forEach( unbind );
-
-    bindings = [];
-  };
-
   var unbindAllOnRule = function( rule ){
     var unbind = function( b ){ b.cy.off( b.events, b.selector, b.fn ); };
 
@@ -153,7 +144,7 @@
         return {
           x: pos.x + delta.x,
           y: pos.y + delta.y
-        }
+        };
       }
     };
   };
@@ -329,7 +320,7 @@
     } else {
       var matches = getEleMatchesSpecFn( rule.nodesMatching );
 
-      rule.matches = function( ele ){ return eleExists( ele ) && matches( ele ) };
+      rule.matches = function( ele ){ return eleExists( ele ) && matches( ele ); };
     }
 
     if( rule.dragWith != null ){
@@ -481,7 +472,7 @@
   }
 
   if( typeof cytoscape !== 'undefined' ){ // expose to global cytoscape (i.e. window.cytoscape)
-    register( cytoscape );
+    register( cytoscape ); // eslint-disable-line
   }
 
 })();

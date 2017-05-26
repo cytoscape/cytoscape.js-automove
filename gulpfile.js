@@ -73,24 +73,3 @@ gulp.task('tag', shell.task([
 gulp.task('npm', shell.task([
   'npm publish .'
 ]));
-
-// http://www.jshint.com/docs/options/
-gulp.task('lint', function(){
-  return gulp.src( 'cytoscape-*.js' )
-    .pipe( jshint({
-      funcscope: true,
-      laxbreak: true,
-      loopfunc: true,
-      strict: true,
-      unused: 'vars',
-      eqnull: true,
-      sub: true,
-      shadow: true,
-      laxcomma: true
-    }) )
-
-    .pipe( jshint.reporter(jshStylish) )
-
-    //.pipe( jshint.reporter('fail') )
-  ;
-});

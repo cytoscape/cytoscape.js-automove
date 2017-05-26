@@ -3,10 +3,9 @@
   "version": "1.4.0",
   "description": "An extension for Cytoscape.js that automatically updates node positions based on specified rules",
   "main": "cytoscape-automove.js",
-  "spm": {
-    "main": "cytoscape-automove.js"
-  },
   "scripts": {
+    "publish": "gulp publish",
+    "lint": "eslint cytoscape-automove.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,6 +22,10 @@
   },
   "homepage": "https://github.com/cytoscape/cytoscape.js-automove",
   "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
     "gulp": "^3.8.8",
     "gulp-jshint": "^1.8.5",
     "gulp-prompt": "^0.1.1",

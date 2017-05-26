@@ -1,0 +1,12 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "node": true,
+        "amd": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "semi": "error"
+    }
+}
