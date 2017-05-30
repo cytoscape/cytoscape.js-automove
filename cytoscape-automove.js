@@ -15,18 +15,6 @@
     // - 'drag' => matching nodes are effectively dragged along
     reposition: 'mean',
 
-    // for `reposition: 'mean'`, specify nodes that should be ignored in the mean calculation
-    // - a function that returns true for nodes to be ignored
-    // - a selector that matches the nodes to be ignored
-    // - a collection of nodes to be ignored (very good for performance)
-    meanIgnores: function( node ){ return false; },
-
-    // for `reposition: 'drag'`, specify nodes that when dragged cause the matched nodes to move along
-    // - a function that returns true for nodes to be listened to for drag events
-    // - a selector that matches the nodes to be listened to for drag events
-    // - a collection of nodes to be ignored (very good for performance)
-    dragWith: function( node ){ return false; },
-
     // specify when the repositioning should occur by specifying a function that
     // calls update() when reposition updates should occur
     // - function( update ){ /* ... */ update(); } => a manual function for updating
@@ -37,7 +25,34 @@
     //   - reposition: 'viewport'
     //   - reposition: 'drag'
     // - default/undefined => on a position event for any node (not as efficient...)
-    when: undefined
+    when: undefined,
+
+
+
+    //
+    // customisation options for non-function `reposition` values
+    //
+
+    // `reposition: 'mean'`
+
+      // specify nodes that should be ignored in the mean calculation
+      // - a function that returns true for nodes to be ignored
+      // - a selector that matches the nodes to be ignored
+      // - a collection of nodes to be ignored (very good for performance)
+      meanIgnores: function( node ){ return false; },
+
+      // specify whether moving a particular `nodesMatching` node causes repositioning
+      // - true : the mid node can't be independently moved/dragged
+      // - false : the mid node can be independently moved/dragged (useful if you want the mid node to use `reposition: 'drag' in another rule with its neighbourhood`)
+      meanOnSelfPosition: function( node ){ return true; },
+
+    // `reposition: 'drag'`
+
+      // specify nodes that when dragged cause the matched nodes to move along (i.e. the master nodes)
+      // - a function that returns true for nodes to be listened to for drag events
+      // - a selector that matches the nodes to be listened to for drag events
+      // - a collection of nodes to be listened to for drag events (very good for performance)
+      dragWith: function( node ){ return false; }
   };
 
   var typeofStr = typeof '';
@@ -220,7 +235,10 @@
       bindOnRule( rule, cy, 'position', 'node', function(){
         var movedNode = this;
 
-        if( movedNode.closedNeighborhood().some( matches ) ){
+        if(
+          movedNode.neighborhood().some( matches ) ||
+          ( rule.meanOnSelfPosition( movedNode ) && matches( movedNode ) )
+        ){
           update( cy, [ rule ] );
         }
       });

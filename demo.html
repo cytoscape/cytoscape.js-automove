@@ -107,7 +107,15 @@
 
 				cy.automove({
 					nodesMatching: cy.$('#mid'),
-					reposition: 'mean'
+					reposition: 'mean',
+					meanOnSelfPosition: function( node ){ return false; }
+				});
+
+				// dragging mid drags its neighbourhood with it
+				cy.automove({
+					nodesMatching: cy.$('#mid').neighbourhood().nodes(),
+					reposition: 'drag',
+					dragWith: cy.$('#mid')
 				});
 
 
