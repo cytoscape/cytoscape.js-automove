@@ -155,7 +155,7 @@
       var pos = node.position();
       var delta = rule.delta;
 
-      if( rule.delta != null && !node.same( rule.grabbedNode ) ){
+      if( rule.delta != null && !node.same( rule.grabbedNode ) && !node.grabbed() ){
         return {
           x: pos.x + delta.x,
           y: pos.y + delta.y
