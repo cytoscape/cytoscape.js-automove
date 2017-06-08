@@ -136,6 +136,7 @@ cy.automove('destroy');
 ## Events
 
 - `automove` : Emitted on a node when its position is changed by a rule
+  - `node.on('automove', function( event, rule ){})`
 
 
 ## Publishing instructions

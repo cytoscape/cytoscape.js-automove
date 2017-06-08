@@ -400,7 +400,7 @@
           if( newPosIsDiff ){ // only update on diff for perf
             node.position( newPos );
 
-            node.trigger('automove');
+            node.trigger( 'automove', [rule] );
           }
         }
       }
