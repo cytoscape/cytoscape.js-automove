@@ -4,7 +4,6 @@
   "description": "An extension for Cytoscape.js that automatically updates node positions based on specified rules",
   "main": "cytoscape-automove.js",
   "scripts": {
-    "publish": "gulp publish",
     "lint": "eslint cytoscape-automove.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
