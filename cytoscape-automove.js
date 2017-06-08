@@ -229,7 +229,7 @@
     return function( update, cy ){
       var matches = function( ele ){
         // must meet ele set and be connected to more than (1 edge + 1 node)
-        return rule.matches( ele ) && ele.neighborhood().length > 2;
+        return rule.matches( ele ) && ele.neighborhood().length > 2 && !ele.grabbed();
       };
 
       bindOnRule( rule, cy, 'position', 'node', function(){
