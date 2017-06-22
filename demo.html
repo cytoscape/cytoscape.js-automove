@@ -7,7 +7,7 @@
 
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 
-		<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+		<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
 
 		<!-- for testing with local version of cytoscape.js -->
 		<!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
@@ -55,7 +55,7 @@
 						},
 
 						{
-							selector: '#mid',
+							selector: '.mid',
 							style: {
 								'width': 8,
 								'height': 8,
@@ -68,7 +68,7 @@
 						{ data: { id: 'a' } },
 						{ data: { id: 'b' } },
 						{ data: { id: 'c' } },
-						{ data: { id: 'mid' } },
+						{ data: { id: 'mid' }, classes: 'mid' },
 						{ data: { source: 'a', target: 'mid' } },
 						{ data: { source: 'b', target: 'mid' } },
 						{ data: { source: 'mid', target: 'c' } },
@@ -182,6 +182,7 @@
 				});
 
 				cy.fit( 100 ); // fit to all the layouts
+
 
 				// .automove-viewport nodes kept in viewport (even if added after this call)
 				// convenient but less performant than `nodesMatching: collection`

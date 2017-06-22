@@ -1,5 +1,7 @@
 (function(){ 'use strict';
 
+  /* eslint-disable no-unused-vars */
+
   var defaults = {
     // specify nodes that should be automoved with one of
     // - a function that returns true for matching nodes
@@ -54,6 +56,8 @@
       // - a collection of nodes to be listened to for drag events (very good for performance)
       dragWith: function( node ){ return false; }
   };
+
+  /* eslint-enable */
 
   var typeofStr = typeof '';
   var typeofObj = typeof {};
@@ -181,6 +185,11 @@
 
           nhoodSize++;
         }
+      }
+
+      // the position should remain unchanged if we would stack the nodes on top of each other
+      if( nhoodSize < 2 ){
+        return undefined;
       }
 
       avgPos.x /= nhoodSize;
