@@ -1,6 +1,6 @@
 cytoscape-automove
 ================================================================================
-
+[![DOI](https://zenodo.org/badge/60880224.svg)](https://zenodo.org/badge/latestdoi/60880224)
 
 ## Description
 
