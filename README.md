@@ -1,10 +1,10 @@
 cytoscape-automove
 ================================================================================
-[![DOI](https://zenodo.org/badge/60880224.svg)](https://zenodo.org/badge/latestdoi/60880224)
+
 
 ## Description
 
-This extension automatically updates the positions of nodes based on rules that you specify.  
+An extension for Cytoscape.js that automatically updates node positions based on specified rules ([demo](https://cytoscape.github.io/cytoscape.js-automove))
 
 Common usecases:
 
@@ -15,28 +15,38 @@ Common usecases:
 
 ## Dependencies
 
- * Cytoscape.js ^2.7.0 || ^3.0.0
+ * Cytoscape.js ^3.2.0
 
 
 ## Usage instructions
 
 Download the library:
-
  * via npm: `npm install cytoscape-automove`,
  * via bower: `bower install cytoscape-automove`, or
  * via direct download in the repository (probably from a tag).
 
-`require()` the library as appropriate for your project:
+Import the library as appropriate for your project:
 
-CommonJS:
+ES import:
+
 ```js
-var cytoscape = require('cytoscape');
-var automove = require('cytoscape-automove');
+import cytoscape from 'cytoscape';
+import automove from 'cytoscape-automove';
 
-automove( cytoscape ); // register extension
+cytoscape.use( automove );
+```
+
+CommonJS require:
+
+```js
+let cytoscape = require('cytoscape');
+let automove = require('cytoscape-automove');
+
+cytoscape.use( automove ); // register extension
 ```
 
 AMD:
+
 ```js
 require(['cytoscape', 'cytoscape-automove'], function( cytoscape, automove ){
   automove( cytoscape ); // register extension
@@ -51,7 +61,7 @@ Plain HTML/JS has the extension registered for you automatically, because no `re
 Each time `cy.automove()` is called, the specified rules are added to the core instance:
 
 ```js
-var defaults = {
+let defaults = {
   // specify nodes that should be automoved with one of
   // - a function that returns true for matching nodes
   // - a selector that matches the nodes
@@ -106,9 +116,9 @@ var defaults = {
     dragWith: function( node ){ return false; }
 };
 
-var options = defaults;
+let options = defaults;
 
-var rule = cy.automove( options );
+let rule = cy.automove( options );
 ```
 
 A rule has a number of functions available:
@@ -139,11 +149,25 @@ cy.automove('destroy');
   - `node.on('automove', function( event, rule ){})`
 
 
+## Build targets
+
+* `npm run test` : Run Mocha tests in `./test`
+* `npm run build` : Build `./src/**` into `cytoscape-automove.js`
+* `npm run watch` : Automatically build on changes with live reloading (N.b. you must already have an HTTP server running)
+* `npm run dev` : Automatically build on changes with live reloading with webpack dev server
+* `npm run lint` : Run eslint on the source
+
+N.b. all builds use babel, so modern ES features can be used in the `src`.
+
+
 ## Publishing instructions
 
 This project is set up to automatically be published to npm and bower.  To publish:
 
-1. Set the version number environment variable: `export VERSION=1.2.3`
-1. Publish: `gulp publish`
+1. Build the extension : `npm run build`
+1. Commit the build : `git commit -am "Build for release"`
+1. Bump the version number and tag: `npm version major|minor|patch`
+1. Push to origin: `git push && git push --tags`
+1. Publish to npm: `npm publish .`
 1. If publishing to bower for the first time, you'll need to run `bower register cytoscape-automove https://github.com/cytoscape/cytoscape.js-automove.git`
-1. Make a release on GitHub to automatically register a new Zenodo DOI
+1. [Make a new release](https://github.com/cytoscape/cytoscape.js-automove/releases/new) for Zenodo.
