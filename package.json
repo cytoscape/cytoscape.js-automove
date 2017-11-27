@@ -1,6 +1,6 @@
 {
   "name": "cytoscape-automove",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "An extension for Cytoscape.js that automatically updates node positions based on specified rules",
   "main": "cytoscape-automove.js",
   "author": {
