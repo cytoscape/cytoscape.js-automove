@@ -1,0 +1,24 @@
+{
+  "name": "cytoscape-automove",
+  "description": "An extension for Cytoscape.js that automatically updates node positions based on specified rules",
+  "main": "cytoscape-automove.js",
+  "dependencies": {
+    "cytoscape": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cytoscape/cytoscape.js-automove.git"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "keywords": [
+    "cytoscape",
+    "cytoscape-extension"
+  ],
+  "license": "MIT"
+}

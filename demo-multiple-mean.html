@@ -1,0 +1,143 @@
+<!DOCTYPE>
+
+<html>
+
+	<!-- This demo is mostly for testing that multiple mean rules don't conflict -->
+
+	<head>
+		<title>cytoscape-automove.js demo</title>
+
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+
+		<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+
+		<!-- for testing with local version of cytoscape.js -->
+		<!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
+
+		<script src="cytoscape-automove.js"></script>
+
+		<style>
+			body {
+				font-family: helvetica neue, helvetica, liberation sans, arial, sans-serif;
+				font-size: 14px;
+			}
+
+			#cy {
+				position: absolute;
+				left: 0;
+				top: 0;
+				bottom: 0;
+				right: 0;
+				z-index: 999;
+			}
+
+			h1 {
+				opacity: 0.5;
+				font-size: 1em;
+				font-weight: bold;
+			}
+		</style>
+
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+
+				var cy = window.cy = cytoscape({
+					container: document.getElementById('cy'),
+
+					layout: {
+						name: 'circle'
+					},
+
+					style: [
+						{
+							selector: 'node',
+							style: {
+								'label': 'data(id)'
+							}
+						},
+
+						{
+							selector: '.mid',
+							style: {
+								'width': 8,
+								'height': 8,
+								'label': ''
+							}
+						}
+					],
+
+					elements: [
+						{ data: { id: 'a' } },
+						{ data: { id: 'b' } },
+						{ data: { id: 'c' } },
+						{ data: { id: 'mid' }, classes: 'mid' },
+						{ data: { source: 'a', target: 'mid' } },
+						{ data: { source: 'b', target: 'mid' } },
+						{ data: { source: 'c', target: 'mid' } },
+
+						{ data: { id: 'd' } },
+						{ data: { id: 'e' } },
+						{ data: { id: 'mid2' }, classes: 'mid' },
+						{ data: { source: 'd', target: 'mid2' } },
+						{ data: { source: 'e', target: 'mid2' } },
+
+						{ data: { source: 'mid', target: 'mid2' } }
+
+					]
+				});
+
+				// cy.on('automove', function( evt ){
+				// 	var target = evt.target || evt.cyTarget; // 3.x || 2.x
+				//
+				// 	console.log('automove event on %s', target.id());
+				// });
+
+				// a, b, c; with mid in the middle
+
+				cy.automove({
+					nodesMatching: cy.$('#mid'),
+					reposition: 'mean',
+					meanOnSelfPosition: function( node ){ return true; },
+					meanIgnores: function( node ){ return node.hasClass('mid'); }
+				});
+
+				cy.automove({
+					nodesMatching: cy.$('#mid2'),
+					reposition: 'mean',
+					meanOnSelfPosition: function( node ){ return true; },
+					meanIgnores: function( node ){ return node.hasClass('mid'); }
+				});
+
+				// dragging mid drags its neighbourhood with it
+				cy.automove({
+					nodesMatching: cy.$('#mid').neighbourhood().nodes().not('.mid'),
+					reposition: 'drag',
+					dragWith: cy.$('#mid')
+				});
+
+				// dragging mid2 drags its neighbourhood with it
+				cy.automove({
+					nodesMatching: cy.$('#mid2').neighbourhood().nodes().not('.mid'),
+					reposition: 'drag',
+					dragWith: cy.$('#mid2')
+				});
+
+
+				cy.on('cxttap', 'node', function( evt ){
+					var tgt = evt.target || evt.cyTarget; // 3.x || 2.x
+
+					tgt.remove();
+				});
+
+			});
+		</script>
+	</head>
+
+	<body>
+		<h1>cytoscape-automove demo</h1>
+
+		<div id="cy"></div>
+
+	</body>
+
+</html>
