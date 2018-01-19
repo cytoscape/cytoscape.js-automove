@@ -302,13 +302,20 @@ let bindForNodeList = function( cy, scratch ){
 
     scratch.nodes.merge( target );
   };
+
+  scratch.onRmNode = function( evt ){
+    let target = evt.target;
+
+    scratch.nodes.unmerge( target );
   };
 
   cy.on('add', 'node', scratch.onAddNode);
+  cy.on('remove', 'node', scratch.onRmNode);
 };
 
 let unbindForNodeList = function( cy, scratch ){
   cy.removeListener('add', 'node', scratch.onAddNode);
+  cy.removeListener('remove', 'node', scratch.onRmNode);
 };
 
 let update = function( cy, rules ){
