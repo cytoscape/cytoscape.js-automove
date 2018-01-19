@@ -403,6 +403,8 @@ let automove = function( options ){
 
       unbindAllOnRule( rule );
 
+      rule.destroyed = true;
+
       rules.splice( rules.indexOf( rule ), 1 );
 
       if( rules.length === 0 ){
