@@ -272,7 +272,7 @@ let addRule = function( cy, scratch, options ){
   let nodesAreCollection = isCollection( rule.nodesMatching );
 
   if( nodesAreCollection ){
-    rule.nodes = rule.nodesMatching;
+    rule.nodes = rule.nodesMatching.slice();
 
     rule.matches = function( ele ){ return eleExists( ele ) && elesHasEle( rule.nodes, ele ); };
   } else {
@@ -300,7 +300,8 @@ let bindForNodeList = function( cy, scratch ){
   scratch.onAddNode = function( evt ){
     let target = evt.target;
 
-    scratch.nodes.push( target );
+    scratch.nodes.merge( target );
+  };
   };
 
   cy.on('add', 'node', scratch.onAddNode);
@@ -327,7 +328,7 @@ let update = function( cy, rules ){
         let node = nodes[j];
 
         if( node.removed() ){ // remove from list for perf
-          nodes.splice( j, 1 );
+          nodes.unmerge( node );
           continue;
         }
 
@@ -355,7 +356,7 @@ let automove = function( options ){
   };
 
   if( scratch.rules.length === 0 ){
-    scratch.nodes = cy.nodes().toArray();
+    scratch.nodes = cy.nodes().slice();
 
     bindForNodeList( cy, scratch );
   }
