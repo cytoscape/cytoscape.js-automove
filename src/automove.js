@@ -79,10 +79,12 @@ let getRepositioner = function( rule, cy ){
   } else if( r === 'drag' ){
     return dragAlong( rule );
   } else if( isObject( r ) ){
-    if(r['type'] == "inside")
-      return boxPosition( r["pos"] );
-    else if(r['type'] == "outside")
-      return OboxPosition( r["pos"] );
+    if( r.type == undefined || r.type == "inside" ){ 
+      return boxPosition( r );
+    }
+    else if( r.type == "outside" ){
+      return outsideBoxPosition( r );
+    }
   } else {
     return r;
   }
@@ -152,23 +154,23 @@ let boxPosition = function( bb ){
   };
 };
 
-let Oconstrain = function( val, min, max ){
-  let mid = (min+max)/2;
-  if(val>min && val<max){
-    return val>mid? max : min;
+let constrainOut = function( val, min, max ){
+  let mid = ( min + max ) / 2;
+  if( val > min && val < max ){
+    return val > mid ? max : min;
   }
   return val;
 };
 
-let OconstrainInBox = function( node, bb ){
+let constrainOutsideBox = function( node, bb ){
   let pos = node.position();
-  let x = Oconstrain( pos.x, bb.x1, bb.x2 );
-  let y = Oconstrain( pos.y, bb.y1, bb.y2 );
+  let x = constrainOut( pos.x, bb.x1, bb.x2 );
+  let y = constrainOut( pos.y, bb.y1, bb.y2 );
 
-  if(x!=pos.x && y!=pos.y){
-    if(Math.abs(pos.x-x)<Math.abs(pos.y-y)){
+  if(x != pos.x && y != pos.y){
+    if(Math.abs(pos.x - x) < Math.abs(pos.y - y)){
       pos.x = x;
-    }else{
+    } else {
       pos.y = y;
     }
   }
@@ -176,9 +178,9 @@ let OconstrainInBox = function( node, bb ){
   return pos;
 };
 
-let OboxPosition = function( bb ){
+let outsideBoxPosition = function( bb ){
   return function( node ){
-    return OconstrainInBox( node, bb );
+    return constrainOutsideBox( node, bb );
   };
 };
 
