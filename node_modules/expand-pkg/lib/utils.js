@@ -10,6 +10,7 @@ require = utils;
  * Lazily required module depedencies
  */
 
+require('defaults-deep', 'defaults');
 require('get-value', 'get');
 require('kind-of', 'typeOf');
 require('load-pkg');

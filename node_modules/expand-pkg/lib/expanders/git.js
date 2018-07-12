@@ -17,7 +17,7 @@ module.exports = function(val, key, config, schema) {
   }
 
   if (utils.isString(config.repository)) {
-    utils.merge(config, utils.repo.expandUrl(config.repository, config));
+    utils.defaults(config, utils.repo.expandUrl(config.repository, config));
   }
 
   schema.update('homepage', config);

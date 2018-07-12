@@ -79,7 +79,12 @@ let getRepositioner = function( rule, cy ){
   } else if( r === 'drag' ){
     return dragAlong( rule );
   } else if( isObject( r ) ){
-    return boxPosition( r );
+    if( r.type == undefined || r.type == "inside" ){ 
+      return boxPosition( r );
+    }
+    else if( r.type == "outside" ){
+      return outsideBoxPosition( r );
+    }
   } else {
     return r;
   }
@@ -146,6 +151,36 @@ let constrainInBox = function( node, bb ){
 let boxPosition = function( bb ){
   return function( node ){
     return constrainInBox( node, bb );
+  };
+};
+
+let constrainOut = function( val, min, max ){
+  let mid = ( min + max ) / 2;
+  if( val > min && val < max ){
+    return val > mid ? max : min;
+  }
+  return val;
+};
+
+let constrainOutsideBox = function( node, bb ){
+  let pos = node.position();
+  let x = constrainOut( pos.x, bb.x1, bb.x2 );
+  let y = constrainOut( pos.y, bb.y1, bb.y2 );
+
+  if(x != pos.x && y != pos.y){
+    if(Math.abs(pos.x - x) < Math.abs(pos.y - y)){
+      pos.x = x;
+    } else {
+      pos.y = y;
+    }
+  }
+
+  return pos;
+};
+
+let outsideBoxPosition = function( bb ){
+  return function( node ){
+    return constrainOutsideBox( node, bb );
   };
 };
 

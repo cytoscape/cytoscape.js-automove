@@ -182,7 +182,11 @@ var getRepositioner = function getRepositioner(rule, cy) {
   } else if (r === 'drag') {
     return dragAlong(rule);
   } else if (isObject(r)) {
-    return boxPosition(r);
+    if (r.type == undefined || r.type == "inside") {
+      return boxPosition(r);
+    } else if (r.type == "outside") {
+      return outsideBoxPosition(r);
+    }
   } else {
     return r;
   }
@@ -249,6 +253,36 @@ var constrainInBox = function constrainInBox(node, bb) {
 var boxPosition = function boxPosition(bb) {
   return function (node) {
     return constrainInBox(node, bb);
+  };
+};
+
+var constrainOut = function constrainOut(val, min, max) {
+  var mid = (min + max) / 2;
+  if (val > min && val < max) {
+    return val > mid ? max : min;
+  }
+  return val;
+};
+
+var constrainOutsideBox = function constrainOutsideBox(node, bb) {
+  var pos = node.position();
+  var x = constrainOut(pos.x, bb.x1, bb.x2);
+  var y = constrainOut(pos.y, bb.y1, bb.y2);
+
+  if (x != pos.x && y != pos.y) {
+    if (Math.abs(pos.x - x) < Math.abs(pos.y - y)) {
+      pos.x = x;
+    } else {
+      pos.y = y;
+    }
+  }
+
+  return pos;
+};
+
+var outsideBoxPosition = function outsideBoxPosition(bb) {
+  return function (node) {
+    return constrainOutsideBox(node, bb);
   };
 };
 
@@ -578,6 +612,8 @@ var defaults = {
   // specify how a node's position should be updated with one of
   // - function( node ){ return { x: 1, y: 2 }; } => put the node where the function returns
   // - { x1, y1, x2, y2 } => constrain the node position within the bounding box (in model co-ordinates)
+  // - { x1, y1, x2, y2, type: 'inside' } => constrain the node position within the bounding box (in model co-ordinates)
+  // - { x1, y1, x2, y2, type: 'outside' } => constrain the node position outside the bounding box (in model co-ordinates)
   // - 'mean' => put the node in the average position of its neighbourhood
   // - 'viewport' => keeps the node body within the viewport
   // - 'drag' => matching nodes are effectively dragged along
