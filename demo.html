@@ -83,7 +83,9 @@
 
 						{ data: { id: 'h' } },
 						{ data: { id: 'i' } },
-						{ data: { source: 'h', target: 'i' } }
+						{ data: { source: 'h', target: 'i' } },
+
+						{ data: { id: 'j' } },
 					]
 				});
 
@@ -180,6 +182,17 @@
 					reposition: 'drag',
 					dragWith: cy.$('#h')
 				});
+
+
+				// j can't go in the box of d
+
+				cy.$('#j').position({ x: 585, y: 350 });
+
+				cy.automove({
+					nodesMatching: cy.$('#j'),
+					reposition: { type: 'outside', x1: 350, x2: 450, y1: 100, y2: 200 }
+				});
+
 
 				cy.fit( 100 ); // fit to all the layouts
 
