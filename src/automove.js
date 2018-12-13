@@ -79,7 +79,7 @@ let getRepositioner = function( rule, cy ){
   } else if( r === 'drag' ){
     return dragAlong( rule );
   } else if( isObject( r ) ){
-    if( r.type == undefined || r.type == "inside" ){ 
+    if( r.type == undefined || r.type == "inside" ){
       return boxPosition( r );
     }
     else if( r.type == "outside" ){
@@ -154,28 +154,34 @@ let boxPosition = function( bb ){
   };
 };
 
-let constrainOut = function( val, min, max ){
-  let mid = ( min + max ) / 2;
-  if( val > min && val < max ){
-    return val > mid ? max : min;
-  }
-  return val;
-};
-
 let constrainOutsideBox = function( node, bb ){
   let pos = node.position();
-  let x = constrainOut( pos.x, bb.x1, bb.x2 );
-  let y = constrainOut( pos.y, bb.y1, bb.y2 );
+  let { x, y } = pos;
+  let { x1, y1, x2, y2 } = bb;
+  let inX = x1 <= x && x <= x2;
+  let inY = y1 <= y && y <= y2;
+  let abs = Math.abs;
 
-  if(x != pos.x && y != pos.y){
-    if(Math.abs(pos.x - x) < Math.abs(pos.y - y)){
-      pos.x = x;
-    } else {
-      pos.y = y;
+  if( inX && inY ){ // inside
+    let dx1 = abs(x1 - x);
+    let dx2 = abs(x2 - x);
+    let dy1 = abs(y1 - y);
+    let dy2 = abs(y2 - y);
+    let min = Math.min(dx1, dx2, dy1, dy2); // which side of box is closest?
+
+    // get position outside, by closest side of box
+    if( min === dx1 ){
+      return { x: x1, y };
+    } else if( min === dx2 ){
+      return { x: x2, y };
+    } else if( min === dy1 ){
+      return { x, y: y1 };
+    } else { // min === dy2
+      return { x, y: y2 };
     }
+  } else { // outside already
+    return { x, y };
   }
-
-  return pos;
 };
 
 let outsideBoxPosition = function( bb ){
