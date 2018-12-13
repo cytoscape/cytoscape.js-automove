@@ -256,28 +256,42 @@ var boxPosition = function boxPosition(bb) {
   };
 };
 
-var constrainOut = function constrainOut(val, min, max) {
-  var mid = (min + max) / 2;
-  if (val > min && val < max) {
-    return val > mid ? max : min;
-  }
-  return val;
-};
-
 var constrainOutsideBox = function constrainOutsideBox(node, bb) {
   var pos = node.position();
-  var x = constrainOut(pos.x, bb.x1, bb.x2);
-  var y = constrainOut(pos.y, bb.y1, bb.y2);
+  var x = pos.x,
+      y = pos.y;
+  var x1 = bb.x1,
+      y1 = bb.y1,
+      x2 = bb.x2,
+      y2 = bb.y2;
 
-  if (x != pos.x && y != pos.y) {
-    if (Math.abs(pos.x - x) < Math.abs(pos.y - y)) {
-      pos.x = x;
+  var inX = x1 <= x && x <= x2;
+  var inY = y1 <= y && y <= y2;
+  var abs = Math.abs;
+
+  if (inX && inY) {
+    // inside
+    var dx1 = abs(x1 - x);
+    var dx2 = abs(x2 - x);
+    var dy1 = abs(y1 - y);
+    var dy2 = abs(y2 - y);
+    var min = Math.min(dx1, dx2, dy1, dy2); // which side of box is closest?
+
+    // get position outside, by closest side of box
+    if (min === dx1) {
+      return { x: x1, y: y };
+    } else if (min === dx2) {
+      return { x: x2, y: y };
+    } else if (min === dy1) {
+      return { x: x, y: y1 };
     } else {
-      pos.y = y;
+      // min === dy2
+      return { x: x, y: y2 };
     }
+  } else {
+    // outside already
+    return { x: x, y: y };
   }
-
-  return pos;
 };
 
 var outsideBoxPosition = function outsideBoxPosition(bb) {
