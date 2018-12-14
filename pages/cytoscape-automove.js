@@ -1,0 +1,1 @@
+../cytoscape-automove.js
