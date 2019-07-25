@@ -410,7 +410,12 @@ let automove = function( options ){
   }
 
   if( options === 'destroy' ){
-    scratch.rules.forEach(function( r ){ r.destroy(); });
+    scratch.rules.forEach(function( r ){
+      unbindAllOnRule( r );
+
+      r.destroyed = true;
+    });
+
     scratch.rules.splice( 0, scratch.rules.length );
 
     unbindForNodeList( cy, scratch );
