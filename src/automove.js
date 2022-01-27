@@ -42,12 +42,8 @@ let getEleMatchesSpecFn = function( spec ){
   }
 };
 
-let bindings = [];
-
 let bind = function( cy, events, selector, fn ){
   let b = { cy: cy, events: events, selector: selector || 'node', fn: fn };
-
-  bindings.push( b );
 
   cy.on( b.events, b.selector, b.fn );
 
