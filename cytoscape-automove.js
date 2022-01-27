@@ -143,12 +143,8 @@ var getEleMatchesSpecFn = function getEleMatchesSpecFn(spec) {
   }
 };
 
-var bindings = [];
-
 var bind = function bind(cy, events, selector, fn) {
   var b = { cy: cy, events: events, selector: selector || 'node', fn: fn };
-
-  bindings.push(b);
 
   cy.on(b.events, b.selector, b.fn);
 
