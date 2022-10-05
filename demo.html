@@ -86,6 +86,13 @@
 						{ data: { source: 'h', target: 'i' } },
 
 						{ data: { id: 'j' } },
+
+						{ data: { id: 'k' } },
+						{ data: { id: 'm' } },
+						{ data: { id: 'n' } },
+						{ data: { source: 'k', target: 'm' } },
+						{ data: { source: 'k', target: 'n' } },
+						{ data: { source: 'm', target: 'n' } },
 					]
 				});
 
@@ -159,7 +166,6 @@
 					when: 'matching'
 				});
 
-
 				// g kept in viewport
 
 				cy.$('#g').position({ x: 400, y: 350 });
@@ -193,6 +199,20 @@
 					reposition: { type: 'outside', x1: 350, x2: 450, y1: 100, y2: 200 }
 				});
 
+
+				// k, m, n all move together on drag as a unit (e.g. cluster)
+
+				cy.$('#k').position({ x: 430, y: -20 });
+				cy.$('#m').position({ x: 490, y: -110 });
+				cy.$('#n').position({ x: 550, y: -20 });
+
+				cy.automove({
+					nodesMatching: cy.$('#k, #m, #n'),
+					reposition: 'drag',
+					dragWith: cy.$('#k, #m, #n')
+				});
+
+				
 
 				cy.fit( 100 ); // fit to all the layouts
 
