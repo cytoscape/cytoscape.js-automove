@@ -8,6 +8,10 @@
     "email": "maxkfranz@gmail.com"
   },
   "scripts": {
+    "build:rollup": "rollup -c",
+    "build:esm": "CREATE_ESM=true rollup -c",
+    "build:cjs": "CREATE_CJS=true rollup -c",
+    "build:umd": "CREATE_UMD=true rollup -c",
     "postpublish": "run-s gh-pages",
     "gh-pages": "gh-pages -d pages",
     "copyright": "update license",
