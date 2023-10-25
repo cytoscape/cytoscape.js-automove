@@ -18,7 +18,7 @@
     "build:esm": "CREATE_ESM=true rollup -c",
     "build:cjs": "CREATE_CJS=true rollup -c",
     "build:umd": "CREATE_UMD=true rollup -c",
-    "build:min": "cross-env NODE_ENV=production MIN=true webpack",
+    "build:min": "CREATE_UMD=true MIN=true rollup -c",
     "build:release": "run-s build copyright",
     "watch": "webpack --progress --watch",
     "dev": "webpack-dev-server --open",
