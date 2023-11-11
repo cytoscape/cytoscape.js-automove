@@ -69,10 +69,10 @@ configs.push({
   plugins: [
     nodeResolve(),
     commonjs(),
+    terser(),
     babel({
       exclude: "node_modules/**",
     }),
-    terser(),
   ],
 });
 configs.push({
@@ -85,10 +85,10 @@ configs.push({
   plugins: [
     nodeResolve(),
     commonjs(),
+    terser(),
     babel({
       exclude: "node_modules/**",
     }),
-    terser(),
   ],
 });
 
