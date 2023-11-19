@@ -22,6 +22,7 @@ if (createEsm) {
       commonjs(),
       babel({
         exclude: "node_modules/**",
+        babelHelpers: "bundled",
       }),
     ],
   });
@@ -38,6 +39,7 @@ if (createCjs) {
       commonjs(),
       babel({
         exclude: "node_modules/**",
+        babelHelpers: "bundled",
       }),
     ],
   });
@@ -55,6 +57,7 @@ if (createUmd) {
       commonjs(),
       babel({
         exclude: "node_modules/**",
+        babelHelpers: "bundled",
       }),
     ],
   });
@@ -72,6 +75,7 @@ configs.push({
     terser(),
     babel({
       exclude: "node_modules/**",
+      babelHelpers: "bundled",
     }),
   ],
 });
@@ -88,6 +92,7 @@ configs.push({
     terser(),
     babel({
       exclude: "node_modules/**",
+      babelHelpers: "bundled",
     }),
   ],
 });
