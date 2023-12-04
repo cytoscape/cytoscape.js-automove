@@ -2,7 +2,10 @@
   "name": "cytoscape-automove",
   "version": "1.10.3",
   "description": "An extension for Cytoscape.js that automatically updates node positions based on specified rules",
-  "main": "cytoscape-automove.js",
+  "main": "dist/cytoscape-automove.cjs.js",
+  "module": "dist/cytoscape-automove.esm.js",
+  "browser": "dist/cytoscape-automove.umd.js",
+  "type": "module",
   "author": {
     "name": "Max Franz",
     "email": "maxkfranz@gmail.com"
@@ -12,11 +15,15 @@
     "gh-pages": "gh-pages -d pages",
     "copyright": "update license",
     "lint": "eslint src",
-    "build": "cross-env NODE_ENV=production webpack",
-    "build:min": "cross-env NODE_ENV=production MIN=true webpack",
+    "build": "rollup -c",
+    "build:rollup": "rollup -c",
+    "build:esm": "CREATE_ESM=true rollup -c",
+    "build:cjs": "CREATE_CJS=true rollup -c",
+    "build:umd": "CREATE_UMD=true rollup -c",
+    "build:min": "CREATE_UMD=true rollup -c",
     "build:release": "run-s build copyright",
-    "watch": "webpack --progress --watch",
-    "dev": "webpack-dev-server --open",
+    "watch": "rollup --config --watch",
+    "dev": "rollup --config --watch",
     "test": "mocha"
   },
   "repository": {
@@ -33,10 +40,13 @@
   },
   "homepage": "https://github.com/cytoscape/cytoscape.js-automove",
   "devDependencies": {
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^25.0.4",
+    "@rollup/plugin-node-resolve": "^15.2.1",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@babel/preset-env": "^7.22.20",
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
-    "babel-preset-env": "^1.5.1",
-    "camelcase": "^4.1.0",
     "chai": "4.0.2",
     "cpy-cli": "^1.0.1",
     "cross-env": "^5.0.0",
@@ -45,10 +55,9 @@
     "mocha": "3.4.2",
     "npm-run-all": "^4.1.2",
     "rimraf": "^2.6.2",
+    "rollup": "^2.56.3",
     "update": "^0.7.4",
-    "updater-license": "^1.0.0",
-    "webpack": "^2.6.1",
-    "webpack-dev-server": "^2.4.5"
+    "updater-license": "^1.0.0"
   },
   "peerDependencies": {
     "cytoscape": "^3.2.0"
